@@ -48,7 +48,7 @@ export default function DraggableSection() {
                   />
                 </div>
               )}
-              <div className="mt-[200px] lg:mt-[150px] my-[300px] lg:my-auto max-w-6xl mx-auto flex flex-wrap gap-4">
+              <div className={` ${topPinned ? "my-[220px] md:my-[170px] lg:my-[140px]" : "my-auto"} max-w-6xl mx-auto flex flex-wrap gap-4`}>
                 {middle.map((component, index) => (
                   <Card
                     key={component.id}

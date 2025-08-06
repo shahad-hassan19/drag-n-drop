@@ -48,7 +48,7 @@ export default function Card({
               <div
                 ref={provided.innerRef}
                 {...provided.droppableProps}
-                className="mt-4 flex space-3 overflow-x-auto flex-wrap"
+                className="mt-4 flex overflow-x-auto flex-wrap gap-1"
               >
                 {component.items.map((item, idx) => (
                   <Draggable
