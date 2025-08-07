@@ -13,7 +13,9 @@ import Card from "./card";
 import { DropResult } from '@hello-pangea/dnd';
 
 export default function DraggableSection() {
-  const [components, setComponents] = useState<SessionComponent[]>(initialComponents);
+  const [components, setComponents] = useState<SessionComponent[]>(
+    initialComponents.map((c, idx) => ({ ...c, initialIndex: idx }))
+  );
   const { topPinned, bottomPinned, middle } = getPinnedComponents(components);
 
   const onDragEnd = useCallback(
@@ -48,7 +50,7 @@ export default function DraggableSection() {
                   />
                 </div>
               )}
-              <div className={` ${topPinned ? "my-[220px] md:my-[170px] lg:my-[140px]" : "my-auto"} max-w-6xl mx-auto flex flex-wrap gap-4`}>
+              <div className={`w-full max-w-full lg:max-w-6xl mx-auto flex flex-col gap-4 ${topPinned ? "my-[120px] md:my-[150px] lg:my-[130px]" : "my-0"}`}>
                 {middle.map((component, index) => (
                   <Card
                     key={component.id}

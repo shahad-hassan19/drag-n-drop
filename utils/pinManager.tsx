@@ -1,5 +1,5 @@
 "use client";
-import { Lock, Unlock, Pin, Info, History } from "lucide-react";
+import { Lock, Unlock, Pin, Info, History, PinOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PinControlsProps } from "@/types";
 
@@ -26,18 +26,26 @@ export default function PinControls({
       <Button
         variant="ghost"
         size="icon"
-        className={pinned ? "hidden" : "flex items-center justify-center"}
+        className="flex items-center justify-center"
         title={pinned ? "Unpin" : "Pin"}
-        onClick={onPinToggle}
+        onClick={(e) => {
+          e.stopPropagation();
+          onPinToggle?.();
+        }}
       >
-        <Pin className={`w-4 h-4 ${pinned ? "text-blue-500" : ""}`} />
+        {
+          pinned ? (<PinOff className="w-4 h-4"/>) : (<Pin className="w-4 h-4"/>)
+        }
       </Button>
       <Button
         variant="ghost"
         size="icon"
         className={pinned ? "flex items-center justify-center" : "hidden"}
         title={locked ? "Unlock" : "Lock"}
-        onClick={onLockToggle}
+        onClick={(e) => {
+          e.stopPropagation();
+          onLockToggle?.();
+        }}
       >
         {locked ? (
           <Lock className="w-4 h-4 text-red-500" />

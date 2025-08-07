@@ -5,6 +5,8 @@ export interface SessionComponent {
     locked: boolean;
     items: string[];
     replacementOrder?: number;
+    originalIndex?: number;
+    initialIndex?: number;
 }
 
 export interface CardProps {

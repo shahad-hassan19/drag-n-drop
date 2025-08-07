@@ -1,6 +1,18 @@
 import { SessionComponent } from "@/types";
 import { DropResult } from "@hello-pangea/dnd";
 
+let lastTimestamp = 0;
+function getUniqueTimestamp() {
+    const now = Date.now();
+    if (now <= lastTimestamp) {
+        lastTimestamp += 1; // ensure uniqueness
+        return lastTimestamp;
+    } else {
+        lastTimestamp = now;
+        return now;
+    }
+}
+
 export const handleCardDragEnd = (
     result: DropResult,
     components: SessionComponent[],
@@ -12,26 +24,26 @@ export const handleCardDragEnd = (
 
     if (type === "CARD") {
         setComponents((prev) => {
-          const middle = prev.filter((c) => !c.pinned);
-          const reorderedMiddle = [...middle];
-          const [moved] = reorderedMiddle.splice(source.index, 1);
-          reorderedMiddle.splice(destination.index, 0, moved);
-      
-          // Reconstruct the full list: keep pinned where they are
-          const newList: SessionComponent[] = [];
-          for (const c of prev) {
-            if (c.pinned) {
-              newList.push(c);
-            } else {
-              newList.push(reorderedMiddle.shift()!);
+            const middle = prev.filter((c) => !c.pinned);
+            const reorderedMiddle = [...middle];
+            const [moved] = reorderedMiddle.splice(source.index, 1);
+            reorderedMiddle.splice(destination.index, 0, moved);
+
+            // Reconstruct the full list: keep pinned where they are
+            const newList: SessionComponent[] = [];
+            for (const c of prev) {
+                if (c.pinned) {
+                    newList.push(c);
+                } else {
+                    newList.push(reorderedMiddle.shift()!);
+                }
             }
-          }
-      
-          return newList;
+
+            return newList;
         });
         return;
-      }
-      
+    }
+
 
     if (type === "ITEM") {
         setComponents((prev) => {
@@ -63,89 +75,73 @@ export const handleCardDragEnd = (
     }
 };
 
-let replacementCounter = 0; // Persist this outside the function (e.g., in module scope or React state)
-
 export const handlePinToggle = (
-    id: string,
-    components: SessionComponent[],
-    setComponents: (updateFn: (prev: SessionComponent[]) => SessionComponent[]) => void
-): void => {
-    setComponents((prev) => {
-        const updated = [...prev];
-        const index = updated.findIndex((c) => c.id === id);
-        if (index === -1) return prev;
+  id: string,
+  components: SessionComponent[],
+  setComponents: React.Dispatch<React.SetStateAction<SessionComponent[]>>
+) => {
+  setComponents((prev) => {
+    const updated = prev.map(c => ({ ...c }));
+    const targetIndex = updated.findIndex((c) => c.id === id);
+    if (targetIndex === -1) return prev;
+    const target = updated[targetIndex];
 
-        const target = updated[index];
+    // If already pinned → unpin it
+    if (target.pinned) {
+      updated.splice(targetIndex, 1);
+      // Use initialIndex for original order
+      const initialIndex = typeof target.initialIndex === 'number' ? target.initialIndex : updated.length;
+      // Find the correct position among unpinned cards
+      let insertIndex = updated.findIndex(
+        (c) => !c.pinned && (typeof c.initialIndex === 'number' && c.initialIndex > initialIndex)
+      );
+      if (insertIndex === -1) insertIndex = updated.length;
+      updated.splice(insertIndex, 0, { ...target, pinned: false, replacementOrder: undefined, originalIndex: undefined });
+      return updated;
+    }
 
-        if (target.pinned) {
-            // Unpin
-            updated[index] = { ...target, pinned: false, locked: false, replacementOrder: undefined };
-            return updated;
-        }
+    // Find all currently pinned cards
+    const pinned = updated
+      .map((c, idx) => ({ ...c, idx }))
+      .filter(c => c.pinned)
+      .sort((a, b) => (a.replacementOrder ?? 0) - (b.replacementOrder ?? 0));
 
-        const pinned = updated.filter((c) => c.pinned);
-        const pinnedUnlocked = pinned.filter((c) => !c.locked);
-        const pinnedLocked = pinned.filter((c) => c.locked);
+    // If already 2 pinned, unpin the oldest and insert new pin at its place
+    if (pinned.length >= 2) {
+      const oldest = pinned[0];
+      updated.splice(oldest.idx, 1);
+      // Unpin it and put it back in its original position using initialIndex
+      const initialIndex = typeof oldest.initialIndex === 'number' ? oldest.initialIndex : updated.length;
+      let restoreIndex = updated.findIndex(
+        (c) => !c.pinned && (typeof c.initialIndex === 'number' && c.initialIndex > initialIndex)
+      );
+      if (restoreIndex === -1) restoreIndex = updated.length;
+      updated.splice(restoreIndex, 0, { ...oldest, pinned: false, replacementOrder: undefined, originalIndex: undefined });
 
-        if (pinned.length < 2) {
-            // Less than 2 pinned – just pin this one
-            replacementCounter += 1;
-            updated[index] = { ...target, pinned: true, replacementOrder: replacementCounter };
-            return updated;
-        }
+      // Remove the new card from its current position (adjust if after oldest)
+      const newTargetIndex = updated.findIndex((c) => c.id === id);
+      updated.splice(newTargetIndex, 1);
 
-        if (pinnedLocked.length === 2) {
-            alert("Remove lock to pin card");
-            return prev;
-        }
+      // Pin the new card and insert at the same index as the one just unpinned
+      const pinnedTarget = {
+        ...target,
+        pinned: true,
+        replacementOrder: getUniqueTimestamp(),
+        originalIndex: newTargetIndex,
+      };
+      updated.splice(oldest.idx, 0, pinnedTarget);
+      return updated;
+    }
 
-        const pinIndex = updated.findIndex((c) => c.id === target.id);
-
-        if (pinnedUnlocked.length === 2) {
-            // Replace the oldest unlocked pinned card
-            const sortedUnlocked = [...pinnedUnlocked].sort(
-                (a, b) => (a.replacementOrder ?? 0) - (b.replacementOrder ?? 0)
-            );
-            const toReplace = sortedUnlocked[0];
-            const replaceIndex = updated.findIndex((c) => c.id === toReplace.id);
-
-            updated[replaceIndex] = {
-                ...toReplace,
-                pinned: false,
-                locked: false,
-                replacementOrder: undefined
-            };
-
-            replacementCounter += 1;
-            updated[pinIndex] = {
-                ...target,
-                pinned: true,
-                replacementOrder: replacementCounter
-            };
-
-            return updated;
-        }
-
-        // Only one unlocked — replace it
-        const toReplace = pinnedUnlocked[0];
-        const replaceIndex = updated.findIndex((c) => c.id === toReplace.id);
-
-        updated[replaceIndex] = {
-            ...toReplace,
-            pinned: false,
-            locked: false,
-            replacementOrder: undefined
-        };
-
-        replacementCounter += 1;
-        updated[pinIndex] = {
-            ...target,
-            pinned: true,
-            replacementOrder: replacementCounter
-        };
-
-        return updated;
-    });
+    // If less than 2 pinned, just pin at current position
+    updated[targetIndex] = {
+      ...updated[targetIndex],
+      pinned: true,
+      replacementOrder: getUniqueTimestamp(),
+      originalIndex: targetIndex,
+    };
+    return updated;
+  });
 };
 
 export const handleLockToggle = (
