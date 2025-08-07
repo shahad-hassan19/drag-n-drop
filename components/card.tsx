@@ -43,7 +43,7 @@ export default function Card({
         <div
           ref={provided.innerRef}
           {...provided.draggableProps}
-          className="rounded-sm bg-[#d6e8f5] p-4 shadow-md border border-blue-300 w-full max-w-full mx-auto"
+          className="rounded-sm bg-[#d6e8f5] p-4 shadow-md border border-blue-300 w-full sm:w-auto"
         >
           <div
             className="flex justify-between items-center"
@@ -70,7 +70,7 @@ export default function Card({
               <div
                 ref={provided.innerRef}
                 {...provided.droppableProps}
-                className="mt-4 flex overflow-y-hidden overflow-x-auto hide-scrollbar gap-2 snap-x px-1"
+                className="mt-4 flex overflow-x-auto md:overflow-none hide-scrollbar gap-2 snap-x px-1"
               >
                 {component.items.map((item, idx) => (
                   <Draggable

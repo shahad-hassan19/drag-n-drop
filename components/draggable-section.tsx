@@ -50,7 +50,7 @@ export default function DraggableSection() {
                   />
                 </div>
               )}
-              <div className={`w-full max-w-full lg:max-w-6xl mx-auto flex flex-col gap-4 ${topPinned ? "my-[120px] md:my-[150px] lg:my-[130px]" : "my-0"}`}>
+              <div className={`max-w-6xl mx-auto flex flex-wrap gap-4 ${topPinned ? "my-[140px] md:my-[160px] lg:my-[140px]" : "my-0"}`}>
                 {middle.map((component, index) => (
                   <Card
                     key={component.id}
