@@ -43,7 +43,7 @@ export default function Card({
         <div
           ref={provided.innerRef}
           {...provided.draggableProps}
-          className="rounded-sm bg-[#d6e8f5] p-4 shadow-md border border-blue-300 w-full sm:w-auto"
+          className={`rounded-sm  p-4 shadow-md border border-blue-300 w-full sm:w-auto ${component.pinned ? "bg-[#d6e8f5]" : "bg-white"}`}
         >
           <div
             className="flex justify-between items-center"
@@ -83,11 +83,11 @@ export default function Card({
                         ref={provided.innerRef}
                         {...provided.draggableProps}
                         {...provided.dragHandleProps}
-                        className="p-2 bg-white border rounded min-w-[60vw] sm:min-w-[80px] text-center snap-center cursor-pointer"
+                        className="p-2 bg-white border rounded min-w-[60vw] sm:min-w-[80px] text-center snap-center cursor-pointer flex items-center justify-center gap-1"
                         onClick={() => handleItemClick(item)}
                       >
                         {item}
-                        <div className="text-xs text-gray-500 mt-1">Clicks: {itemCounts[`${component.id}-${item}`] || 0}</div>
+                        <div className="text-xs text-white mt-1 bg-green-500 rounded-full w-4 h-4 flex items-center justify-center p-1">{itemCounts[`${component.id}-${item}`] || 0}</div>
                       </div>
                     )}
                   </Draggable>

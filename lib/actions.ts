@@ -108,7 +108,15 @@ export const handlePinToggle = (
 
     // If already 2 pinned, unpin the oldest and insert new pin at its place
     if (pinned.length >= 2) {
-      const oldest = pinned[0];
+      const lockedPins = pinned.filter(c => c.locked);
+      const unlockedPins = pinned.filter(c => !c.locked);
+
+      if (lockedPins.length === 2) {
+        alert("Remove lock to pin new cards");
+        return prev;
+      }
+
+      const oldest = unlockedPins[0];
       updated.splice(oldest.idx, 1);
       // Unpin it and put it back in its original position using initialIndex
       const initialIndex = typeof oldest.initialIndex === 'number' ? oldest.initialIndex : updated.length;

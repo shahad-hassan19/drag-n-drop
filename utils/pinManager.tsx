@@ -26,6 +26,7 @@ export default function PinControls({
       <Button
         variant="ghost"
         size="icon"
+        disabled={locked}
         className="flex items-center justify-center"
         title={pinned ? "Unpin" : "Pin"}
         onClick={(e) => {
